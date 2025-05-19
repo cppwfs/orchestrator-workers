@@ -1,24 +1,39 @@
 = Orchestrator Workers Example
 
-This is a Spring AI and Spring Integration application that routes customer questions to the correct agent.
-This is a Spring Integration implementation of the https://github.com/spring-projects/spring-ai-examples/tree/main/agentic-patterns/orchestrator-workers[Orchestrator Workers example] provided by Spring AI.  It is implemented using a Splitter and Aggregator.
+This is a Spring AI and Spring Integration application that demonstrates the Orchestrator-Workers pattern. It analyzes a task and breaks it down into multiple approaches (formal, conversational, etc.), then generates different versions of content based on those approaches.
 
-== Requirements:
+This is a Spring Integration implementation of the https://github.com/spring-projects/spring-ai-examples/tree/main/agentic-patterns/orchestrator-workers[Orchestrator Workers example] provided by Spring AI. It is implemented using a Splitter and Aggregator pattern.
+
+== How It Works
+
+1. The application receives a task (e.g., "Write a product description for a new eco-friendly water bottle")
+2. The orchestrator analyzes the task and breaks it down into different approaches (formal, conversational, etc.)
+3. Workers process each approach to generate different versions of content
+4. The results are aggregated and returned
+
+== Requirements
 
 * Java 17 or Above
+* OpenAI API Key
 
-== Build:
+== Build
 
 [source,shell]
 ----
-export OPENAI_API_KEY=<Your Open AI Key>
+export OPENAI_API_KEY=<your OpenAI API key>
 mvn clean package
 ----
 
-== Run:
+== Run
 
 [source,shell]
 ----
-export OPENAI_API_KEY=<your Open AI Key>
+export OPENAI_API_KEY=<your OpenAI API key>
 java -jar target/orchestrator-0.0.1-SNAPSHOT.jar
 ----
+
+== Example
+
+The application comes with a default example that generates a product description for an eco-friendly water bottle in different styles. The output will be displayed in the console when you run the application.
+
+To modify the example or create your own tasks, edit the `OrchestratorApplication.java` file and change the message payload in the `applicationRunner` method.
