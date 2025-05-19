@@ -33,16 +33,34 @@ public class OrchestratorConfiguration {
     public static final String USER_REQUEST = "userRequest";
     public static final String ANALYSIS = "analysis";
 
+    /**
+     * Creates the primary input channel for the orchestration flow.
+     * 
+     * @return A DirectChannel that serves as the entry point for messages in the integration flow
+     */
     @Bean
     MessageChannel inputChannel() {
         return new DirectChannel();
     }
 
+    /**
+     * Provides a thread pool executor for handling concurrent tasks in the orchestration flow.
+     * 
+     * @return A cached thread pool executor that creates new threads as needed
+     */
     @Bean
     public Executor taskExecutor() {
         return Executors.newCachedThreadPool();
     }
 
+    /**
+     * Defines the main integration flow that splits incoming requests into subtasks,
+     * processes them in parallel, and aggregates the results.
+     * 
+     * @param orchestratorTransformer Transformer that converts user requests into orchestrator responses
+     * @param responseTransformer Transformer that processes individual tasks and generates responses
+     * @return An IntegrationFlow that handles the complete orchestration process
+     */
     @Bean
     public IntegrationFlow splitAggregateFlow(@Qualifier("orchestratorResponseTransformer") AbstractTransformer orchestratorTransformer, @Qualifier("responseTransformer") AbstractTransformer responseTransformer) {
         return IntegrationFlow.from("inputChannel")
@@ -60,7 +78,19 @@ public class OrchestratorConfiguration {
                 .get();
     }
 
+    /**
+     * A message splitter that breaks down an OrchestratorResponse into individual task messages.
+     * Each task from the OrchestratorResponse is converted into a separate message with
+     * appropriate headers for correlation and task information.
+     */
     public static class CsvSplitter extends AbstractMessageSplitter {
+        /**
+         * Splits a message containing an OrchestratorResponse into multiple messages,
+         * one for each task in the response.
+         *
+         * @param message The message containing an OrchestratorResponse payload
+         * @return A list of messages, each corresponding to a task from the OrchestratorResponse
+         */
         @Override
         protected Object splitMessage(Message<?> message) {
             OrchestratorWorkers.OrchestratorResponse payload = (OrchestratorWorkers.OrchestratorResponse) message.getPayload();
@@ -80,6 +110,14 @@ public class OrchestratorConfiguration {
         }
     }
 
+    /**
+     * Creates a transformer that processes individual tasks from the orchestrator.
+     * This transformer extracts task information from message headers and uses the OrchestratorWorkers
+     * to generate a response for each task.
+     *
+     * @param orchestratorWorkers The service that processes tasks and generates responses
+     * @return A transformer that converts task messages into response messages
+     */
     @Bean
     AbstractTransformer responseTransformer(OrchestratorWorkers orchestratorWorkers) {
         return new AbstractTransformer() {
@@ -96,6 +134,13 @@ public class OrchestratorConfiguration {
         };
     }
 
+    /**
+     * Creates a transformer that processes the initial user request and transforms it into
+     * an OrchestratorResponse containing analysis and subtasks.
+     *
+     * @param orchestratorWorkers The service that analyzes user requests and breaks them down into subtasks
+     * @return A transformer that converts user request messages into orchestrator response messages
+     */
     @Bean
     AbstractTransformer orchestratorResponseTransformer(OrchestratorWorkers orchestratorWorkers) {
         return new AbstractTransformer() {
@@ -110,6 +155,14 @@ public class OrchestratorConfiguration {
         };
     }
 
+    /**
+     * Creates the final integration flow that handles the output from the split-aggregate flow.
+     * This flow prints the worker responses to the console.
+     *
+     * @param flow The upstream split-aggregate flow that processes and aggregates tasks
+     * @param orchestratorWorkers The service that processes tasks (not directly used in this method)
+     * @return An IntegrationFlow that handles the final output of the orchestration process
+     */
     @Bean
     public IntegrationFlow myFlow(@Qualifier("splitAggregateFlow") IntegrationFlow flow, OrchestratorWorkers orchestratorWorkers) {
         return IntegrationFlow.from(flow)
@@ -123,12 +176,30 @@ public class OrchestratorConfiguration {
                 .get();
     }
 
+    /**
+     * Creates the OrchestratorWorkers service that handles task analysis and processing.
+     * This service uses a ChatClient to interact with an LLM for generating responses.
+     *
+     * @param builder The ChatClient.Builder used to create the ChatClient
+     * @return An OrchestratorWorkers instance configured with the default prompts
+     */
     @Bean
     OrchestratorWorkers orchestratorWorkers(ChatClient.Builder builder) {
         return new OrchestratorWorkers(builder.build());
     }
 
+    /**
+     * A release strategy that determines when a message group is ready to be released based on size.
+     * This strategy compares the current size of the message group with the expected size
+     * stored in the SIZE_NAME header of the messages.
+     */
     public static class DescriptionReleaseStrategy implements ReleaseStrategy {
+        /**
+         * Determines if a message group can be released for further processing.
+         *
+         * @param messageGroup The group of messages being aggregated
+         * @return true if the current size of the message group is greater than or equal to the expected size
+         */
         @Override
         public boolean canRelease(MessageGroup messageGroup) {
             int messageGroupSize = messageGroup.size();
