@@ -1,0 +1,24 @@
+= Orchestrator Workers Example
+
+This is a Spring AI and Spring Integration application that routes customer questions to the correct agent.
+This is a Spring Integration implementation of the https://github.com/spring-projects/spring-ai-examples/tree/main/agentic-patterns/orchestrator-workers[Orchestrator Workers example] provided by Spring AI.  It is implemented using a Splitter and Aggregator.
+
+== Requirements:
+
+* Java 17 or Above
+
+== Build:
+
+[source,shell]
+----
+export OPENAI_API_KEY=<Your Open AI Key>
+mvn clean package
+----
+
+== Run:
+
+[source,shell]
+----
+export OPENAI_API_KEY=<your Open AI Key>
+java -jar target/llmRouterFlow-0.0.1-SNAPSHOT.jar
+----
