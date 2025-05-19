@@ -81,7 +81,7 @@ public class OrchestratorConfiguration {
     }
 
     @Bean
-    AbstractTransformer responseTransformer(OrchestratorWorkers orchestratorWorkers) { // have to call orchestrator workers
+    AbstractTransformer responseTransformer(OrchestratorWorkers orchestratorWorkers) {
         return new AbstractTransformer() {
             @Override
             protected Object doTransform(Message<?> m) {
@@ -90,7 +90,7 @@ public class OrchestratorConfiguration {
                     return MessageBuilder.withPayload(response)
                             .setHeaderIfAbsent(CORRELATION_KEY, Objects.requireNonNull(m.getHeaders().get(CORRELATION_KEY)))
                             .setHeaderIfAbsent(SIZE_NAME, Objects.requireNonNull(m.getHeaders().get(SIZE_NAME)))
-                            .setHeaderIfAbsent(USER_REQUEST, m.getPayload().toString())
+                            .setHeaderIfAbsent(USER_REQUEST, Objects.requireNonNull(m.getHeaders().get(USER_REQUEST)))
                             .build();
             }
         };
