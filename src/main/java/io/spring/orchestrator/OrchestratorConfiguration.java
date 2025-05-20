@@ -67,7 +67,7 @@ public class OrchestratorConfiguration {
                 // Add a correlation ID to the message
                 .enrichHeaders(h -> h.header("correlationId", UUID.randomUUID().toString()))
                 .transform(orchestratorTransformer)
-                .split(new CsvSplitter())
+                .split(new taskSplitter())
                 .channel(c -> c.executor(Executors.newCachedThreadPool())) // parallel processing
                 .transform(responseTransformer)
                 .aggregate(a -> a
@@ -83,7 +83,7 @@ public class OrchestratorConfiguration {
      * Each task from the OrchestratorResponse is converted into a separate message with
      * appropriate headers for correlation and task information.
      */
-    public static class CsvSplitter extends AbstractMessageSplitter {
+    public static class taskSplitter extends AbstractMessageSplitter {
         /**
          * Splits a message containing an OrchestratorResponse into multiple messages,
          * one for each task in the response.
